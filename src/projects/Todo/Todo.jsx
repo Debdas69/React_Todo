@@ -1,14 +1,16 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {MdCheck,MdDeleteForever} from "react-icons/md"
 
 const Todo = () => {
 
   const [inputValue, setInputValue] = useState('');
   const [task, setTask] = useState([]);
+  const [timeDate, setTimeDate] = useState('');
+  
 
   const handleInputChange = (value) => {
       setInputValue(value)
-    console.log(value)
+ 
   }
 
   const handleFormSubmit = (event)=> {
@@ -25,12 +27,32 @@ const Todo = () => {
 
     setInputValue("");
   }
+
+  // todo Date and Time
+    useEffect(() => {
+      setInterval(() => {
+        const now = new Date();
+        const formatedDate = now.toLocaleDateString();
+        const formatedTime = now.toLocaleTimeString()
+        setTimeDate(`${formatedDate} - ${formatedTime}`)
+      }, 1000);
+    }, [])
+    
+      const handleDelete = (value) => {
+          const updatedTask = task.filter((ele)=> ele!==value)
+          setTask(updatedTask);
+      }
+      const handleClearButton = () => {
+        setTask([])
+      }
+  
   return (
     <>
 
   <section className='todo-container  bg-amber-50 m-5'>
     <header>
       <h1 className='font-bold text-2xl'>Todo List</h1>
+      <h2 className='font-bold text-xl m-2 text-blue-500'>{timeDate}</h2>
     </header>
     <section className='form'>
       <form onSubmit={handleFormSubmit}>
@@ -43,17 +65,17 @@ const Todo = () => {
       </form>
     </section>
       <section>
-        <ul>
+        <ul> 
           {
             task.map((curTask,index) => {
               return(
                 <li key={index} className='text-2xl font-bold p-2 flex items-center justify-between w-[200px] h-[60px] bg-amber-500 rounded-md mb-2'>
                   <span className=''>{curTask}</span>
                   <button>
-                    <MdCheck className=' bg-green-400 text-3xl hover:bg-green-800 text-white rounded-md '/>
+                    <MdCheck className=' bg-green-400 text-3xl  hover:bg-green-600 text-white rounded-md '/>
                   </button>
                   <button>
-                    <MdDeleteForever className=' bg-red-400 text-3xl hover:bg-red-700 text-white rounded-md'/>
+                    <MdDeleteForever onClick={() => handleDelete(curTask)} className=' bg-red-400 text-3xl hover:bg-red-600 text-white rounded-md'/>
                   </button>
                 </li>
               )
@@ -61,7 +83,9 @@ const Todo = () => {
           }
         </ul>
       </section>
-
+          <section>
+            <button onClick={handleClearButton} className=' bg-red-400 text-2xl  hover:bg-red-600 text-white rounded-md p-2'>Clear all</button>
+          </section>
   </section>
 
     </>
