@@ -1,32 +1,39 @@
 import React, { useEffect, useState } from 'react'
 import {MdCheck,MdDeleteForever} from "react-icons/md"
 
+const todoskey = "reactTodo"
+
 const Todo = () => {
 
-  const [inputValue, setInputValue] = useState('');
-  const [task, setTask] = useState([]);
+  const [inputValue, setInputValue] = useState({});
+  const [task, setTask] = useState(()=>{
+    return JSON.parse(localStorage.getItem(todoskey)) || [];
+  });
   const [timeDate, setTimeDate] = useState('');
   
 
   const handleInputChange = (value) => {
-      setInputValue(value)
+      setInputValue({id: value, content: value, checked: false})
  
   }
 
   const handleFormSubmit = (event)=> {
     event.preventDefault();
 
-    if(!inputValue) return;
+    const { id, content, checked} = inputValue;
+    if(!content) return;
 
-    if(task.includes(inputValue)) {
-      setInputValue("")
-      return
-    };
+    const ifTodoContentMatched = task.find((curTask) => curTask.content === content);
+    if(ifTodoContentMatched) return;
 
-    setTask((prevTask) => [...prevTask, inputValue])
+    setTask((prevTask) => [...prevTask, {id, content, checked}])
 
-    setInputValue("");
+    setInputValue({id: '', content: '', checked: false});
   }
+
+  //todo add data to localstorage
+
+  localStorage.setItem(todoskey, JSON.stringify(task));
 
   // todo Date and Time
     useEffect(() => {
@@ -38,14 +45,24 @@ const Todo = () => {
       }, 1000);
     }, [])
     
-      const handleDelete = (value) => {
-          const updatedTask = task.filter((ele)=> ele!==value)
+      const handleDelete = (data) => {
+          const updatedTask = task.filter((curTask)=> curTask.content !== data)
           setTask(updatedTask);
       }
       const handleClearButton = () => {
         setTask([])
       }
-  
+      
+      const handleCheckedTodo = (data) => {
+          const updatedTask = task.map((curTask) => {
+            if(curTask.content === data){            
+              return {...curTask, checked: !curTask.checked}
+            } else{
+              return curTask
+            }
+          })
+          setTask(updatedTask)
+      }
   return (
     <>
 
@@ -57,7 +74,7 @@ const Todo = () => {
     <section className='form'>
       <form onSubmit={handleFormSubmit}>
         <div>
-          <input type="text" onChange={(e)=>handleInputChange(e.target.value)} className='todo-input border-2 rounded-2xl px-1 py-1' autoComplete='off' value={inputValue}/>
+          <input type="text" onChange={(e)=>handleInputChange(e.target.value)} className='todo-input border-2 rounded-2xl px-1 py-1' autoComplete='off' value={inputValue.content}/>
         </div>
         <div>
           <button type='submit' className='todo-btn bg-blue-400 hover:bg-yellow-400 text-white rounded-md p-2 m-2'>Add Task</button>
@@ -67,15 +84,15 @@ const Todo = () => {
       <section>
         <ul> 
           {
-            task.map((curTask,index) => {
+            task.map((curTask) => {
               return(
-                <li key={index} className='text-2xl font-bold p-2 flex items-center justify-between w-[200px] h-[60px] bg-amber-500 rounded-md mb-2'>
-                  <span className=''>{curTask}</span>
+                <li key={curTask.id} className='text-2xl font-bold p-2 flex items-center justify-between w-[200px] h-[60px] bg-amber-500 rounded-md mb-2'>
+                  <span className={`${curTask.checked} ? line-through : bg-red-500` }>{curTask.content}</span>
                   <button>
-                    <MdCheck className=' bg-green-400 text-3xl  hover:bg-green-600 text-white rounded-md '/>
+                    <MdCheck onClick={() =>handleCheckedTodo() } className=' bg-green-400 text-3xl  hover:bg-green-600 text-white rounded-md '/>
                   </button>
                   <button>
-                    <MdDeleteForever onClick={() => handleDelete(curTask)} className=' bg-red-400 text-3xl hover:bg-red-600 text-white rounded-md'/>
+                    <MdDeleteForever onClick={() => handleDelete(curTask.content)} className=' bg-red-400 text-3xl hover:bg-red-600 text-white rounded-md'/>
                   </button>
                 </li>
               )
